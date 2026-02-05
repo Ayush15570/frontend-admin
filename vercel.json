@@ -1,5 +1,16 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite"
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "script-src 'self' 'unsafe-eval'; object-src 'none'; base-uri 'self';"
+        }
+      ]
+    }
+  ],
+  "framework": "vite",
+  "buildCommand": "node node_modules/vite/bin/vite.js build",
+  "outputDirectory": "dist"
 }
