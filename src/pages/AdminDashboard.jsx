@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import adminService from "../api/adminService";
 import { FaPhoneAlt, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import GetJobById from "./GetJobById"; // ✅ IMPORT
+import { FiDownload, FiRefreshCcw } from "react-icons/fi";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -15,12 +15,10 @@ const AdminDashboard = () => {
   const fetchRequests = async () => {
     setLoading(true);
     setError("");
-
     try {
       const data = await adminService.getAllServiceRequests();
       setRequests(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("SERVICE REQUEST ERROR:", err);
+    } catch {
       setError("Failed to load service requests.");
       setRequests([]);
     } finally {
@@ -34,17 +32,33 @@ const AdminDashboard = () => {
 
   const handleVerifyOtp = async (requestId) => {
     const otp = otpMap[requestId];
-    if (!otp) {
-      alert("Please enter OTP");
-      return;
-    }
+    if (!otp) return alert("Please enter OTP");
 
     try {
       await adminService.verifyRequestOTP(requestId, otp);
-      alert("Request marked as completed");
       fetchRequests();
     } catch {
       alert("Invalid OTP");
+    }
+  };
+
+  const downloadPendingJobs = async () => {
+    try {
+      const res = await adminService.downloadPendingJobs();
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "pending_jobs_report.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert("Failed to download report");
     }
   };
 
@@ -56,61 +70,46 @@ const AdminDashboard = () => {
     );
   }
 
-const downloadPendingJobs = async () => {
-  try {
-    const res = await adminService.downloadPendingJobs();
-    const blob = new Blob([res.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "pending_jobs_report.xlsx";
-
-    document.body.appendChild(link);
-    link.click();
-
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url); // 🔥 important
-  } catch (err) {
-    alert("Failed to download report");
-  }
-};
-
-
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Admin Dashboard
-        </h1>
-        <button
-          onClick={fetchRequests}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-        >
-          Refresh
-        </button>
+      {/* HEADER */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Admin Dashboard
+          </h1>
+          <p className="text-sm text-gray-500">
+            Manage service requests and job assignments
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={downloadPendingJobs}
+            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
+          >
+            <FiDownload />
+            Pending Jobs Report
+          </button>
+
+          <button
+            onClick={fetchRequests}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+          >
+            <FiRefreshCcw />
+            Refresh
+          </button>
+        </div>
       </div>
-      <button
-  onClick={downloadPendingJobs}
-  className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
->
-  📥 Download Pending Jobs Report
-</button>
 
-
-      {/* ✅ GET JOB BY ID MOUNTED HERE */}
-      <GetJobById />
-
+      {/* ERROR */}
       {error && (
         <div className="mb-4 rounded-lg bg-red-100 text-red-700 px-4 py-2 font-medium">
           {error}
         </div>
       )}
 
-      {/* Service Requests Table */}
+      {/* TABLE */}
       <div className="bg-white rounded-2xl shadow-xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
