@@ -56,6 +56,29 @@ const AdminDashboard = () => {
     );
   }
 
+const downloadPendingJobs = async () => {
+  try {
+    const res = await adminService.downloadPendingJobs();
+    const blob = new Blob([res.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "pending_jobs_report.xlsx";
+
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url); // 🔥 important
+  } catch (err) {
+    alert("Failed to download report");
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       {/* Header */}
@@ -70,6 +93,13 @@ const AdminDashboard = () => {
           Refresh
         </button>
       </div>
+      <button
+  onClick={downloadPendingJobs}
+  className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition"
+>
+  📥 Download Pending Jobs Report
+</button>
+
 
       {/* ✅ GET JOB BY ID MOUNTED HERE */}
       <GetJobById />

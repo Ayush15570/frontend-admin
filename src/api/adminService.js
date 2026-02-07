@@ -22,7 +22,13 @@ const adminService = {
 
     verifyJobOTP(jobId, otp) {
         return api.post("/admin/verify-job-otp", { jobId, otp });
+    },
+    downloadPendingJobs() {
+        return api.get("/admin/export/pending-jobs", {
+            responseType: "blob",
+        });
     }
+
 
 
 
