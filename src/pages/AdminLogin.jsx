@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import React from "react";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("");
+  const[email,setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ const AdminLogin = () => {
       alert("Invalid admin credentials");
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
